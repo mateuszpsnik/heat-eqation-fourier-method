@@ -9,15 +9,23 @@
 
 const double pi = 3.14159;
 
-double integral_g_n(double lambda, double L = 2 * pi)
+double g(double x, double t)
+{
+	return 2 * std::exp(-t) * std::sin(x);
+}
+
+double integral_g_n(double lambda, double t_i, double L = 2 * pi)
 {
 	double sum = 0.0;
-	const double step = 0.1;
+	const double step = 0.05;
 	const int NX = (int)(L / step);
 
-	//
+	for (size_t i = 0; i < NX; i++)
+	{
+		sum += g(i * step, t_i) * std::sin(lambda * i * step);
+	}
 
-	return sum;
+	return (double)(2.0 / NX) * sum;
 }
 
 double integral_t_n(double lambda, double t, double L = 2 * pi, double kappa = 1)
@@ -28,8 +36,11 @@ double integral_t_n(double lambda, double t, double L = 2 * pi, double kappa = 1
 
 	for (size_t i = 0; i < M; i++)
 	{
+		double a = std::exp(kappa * lambda * lambda * (tau * i - t));
+		double b = integral_g_n(lambda, tau * i);
+
 		sum += std::exp(kappa * lambda * lambda * (tau * i - t))
-			* integral_g_n(tau * i) * tau;
+			* integral_g_n(lambda, tau * i) * tau;
 	}
 
 	return sum;
@@ -40,7 +51,7 @@ double solve_eq(double x, double t, int n, double kappa = 1.0, double L = 2 * pi
 	double sum = 0.0;
 	double lambda = 0.0;
 	
-	for (size_t i = 0; i <= n; i++)
+	for (size_t i = 0; i <= n; i++) 
 	{
 		lambda = i * pi / L;
 
@@ -68,6 +79,8 @@ void solve_write(std::string filename, double t, int n = 100, double kappa = 1.0
 
 int main()
 {
+	std::cout << "Writing the result into text files might take some time (about 1-2 minutes)";
+
 	solve_write("05_5.txt", .5, 5);
 	solve_write("05_20.txt", .5, 20);
 	solve_write("05_80.txt", .5, 80);
@@ -79,5 +92,4 @@ int main()
 	solve_write("4.txt", 4);
 	solve_write("6.txt", 6);
 	solve_write("8.txt", 8);
-	solve_write("10.txt", 10);
 }
