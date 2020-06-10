@@ -9,6 +9,19 @@
 
 const double pi = 3.14159;
 
+double integral(double lambda, double lower_bound = 0, double upper_bound = 2 * pi)
+{
+	double sum = 0.0;
+	const double step = 0.2;
+
+	for (double x = step / 2; x < upper_bound; x += step)
+	{
+		sum += step * std::sin(x) * std::sin(lambda * x);
+	}
+
+	return sum;
+}
+
 double g(double x, double t)
 {
 	return 2 * std::exp(-t) * std::sin(x);
@@ -46,7 +59,7 @@ double integral_t_n(double lambda, double t, double L = 2 * pi, double kappa = 1
 	return sum;
 }
 
-double solve_eq(double x, double t, int n, double kappa = 1.0, double L = 2 * pi)
+double solve_nonhom_eq(double x, double t, int n, double kappa = 1.0, double L = 2 * pi)
 {
 	double sum = 0.0;
 	double lambda = 0.0;
@@ -56,6 +69,23 @@ double solve_eq(double x, double t, int n, double kappa = 1.0, double L = 2 * pi
 		lambda = i * pi / L;
 
 		sum += integral_t_n(lambda, t) * std::sin(lambda * x);
+	}
+
+	return sum;
+}
+
+double solve_hom_eq(double x, double t, int n, double kappa = 1.0, double L = 10.0)
+{
+	double sum = 0.0;
+	double lambda = 0.0;
+	const double pi = 3.14159;
+
+	for (size_t i = 0; i <= n; i++)
+	{
+		lambda = i * pi / L;
+
+		sum += 2 / L * integral(lambda) * std::exp(-kappa * lambda * t)
+			* std::sin(lambda * x);
 	}
 
 	return sum;
@@ -73,13 +103,14 @@ void solve_write(std::string filename, double t, int n = 100, double kappa = 1.0
 
 	for (double x = 0.0; x <= L; x += step)
 	{
-		file << x << "," << solve_eq(x, t, n) << endl;
+		double solution = solve_hom_eq(x, t, n) + solve_nonhom_eq(x, t, n);
+		file << x << "," << solution << endl;
 	}
 }
 
 int main()
 {
-	std::cout << "Writing the result into text files might take some time (about 1-2 minutes)";
+	std::cout << "Writing the result into text files might take some time (about 1-2 minutes)\n";
 
 	solve_write("05_5.txt", .5, 5);
 	solve_write("05_20.txt", .5, 20);
